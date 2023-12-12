@@ -1,6 +1,7 @@
 import re 
 from flask import Blueprint, render_template, request, flash , redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import login_user, login_required, logout_user, current_user
+# from werkzeug.security import generate_password_hash, check_password_hash
 from .models import User
 from . import db 
 
@@ -31,16 +32,23 @@ def login():
             ##! hashing not working
             if user.password == password:
                 flash('Logged in successfully', category='success')
+                login_user(user, remember=True)
+                ##? logs in and remembers the user (until the server is running)
+                return redirect(url_for("views.home"))
             else:
                 flash('Incorrect Password', category='input_error')
         else:
             flash('User email is not registered yet', category="input_error")
 
-    return render_template("login.html", **login_values)
+    return render_template("login.html", **login_values, user=current_user)
 
 @auth.route('/logout')
+@login_required
+##? until and unless the user is logged in, log out must not be displayed
 def logout():
-    return "<h1>Logout</h1>"
+    logout_user()
+    ##? logs the user out 
+    return redirect(url_for('auth.login'))
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -78,5 +86,5 @@ def signup():
             return redirect(url_for("views.home"))
             ##? url_for(<blueprint_name>, <function_name>)
 
-    return render_template("signup.html", **form_values)
+    return render_template("signup.html", **form_values, user=current_user)
     ##? **form_values --> dictionary unpacking 
