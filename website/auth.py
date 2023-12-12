@@ -1,5 +1,8 @@
 import re 
-from flask import Blueprint, render_template, request, flash 
+from flask import Blueprint, render_template, request, flash , redirect, url_for
+from werkzeug.security import generate_password_hash, check_password_hash
+from .models import User
+from . import db 
 
 auth = Blueprint('auth', __name__)
 ##? setting up a blueprint from our auth in Flask application
@@ -12,7 +15,28 @@ def is_valid_email(email):
 
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template("login.html", is_login = True)
+    login_values = {}
+    ##? initializing an empty dict
+    if request.method == 'POST':
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        login_values = {
+            'email': email,
+        }
+
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # if check_password_hash(user.password, password):
+            ##! hashing not working
+            if user.password == password:
+                flash('Logged in successfully', category='success')
+            else:
+                flash('Incorrect Password', category='input_error')
+        else:
+            flash('User email is not registered yet', category="input_error")
+
+    return render_template("login.html", **login_values)
 
 @auth.route('/logout')
 def logout():
@@ -35,14 +59,24 @@ def signup():
             'firstName': first_name
         }
 
-        if not is_valid_email(email):
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('User already exists', category='input_error')
+        elif not is_valid_email(email):
             flash('Invalid Email entry found', category = 'input_error')
         elif password1 != password2:
             flash('Passwords don\'t match', category='input_error')
             form_values['password1'] = ''
             form_values['password2'] = ''
         else:
+            # hashed_password = generate_password_hash(password1, method='sha256')
+            ##! hashing not working 
+            new_user = User(email=email, first_name=first_name, password=password1)
+            db.session.add(new_user)
+            db.session.commit()
             flash('Account Created Successfully', category='success')
+            return redirect(url_for("views.home"))
+            ##? url_for(<blueprint_name>, <function_name>)
 
     return render_template("signup.html", **form_values)
     ##? **form_values --> dictionary unpacking 
