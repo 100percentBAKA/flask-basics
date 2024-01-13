@@ -25,4 +25,4 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### the flask app will be up and running in the port 5000
+### the flask app will be up and running on the port 5000
