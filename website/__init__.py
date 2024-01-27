@@ -16,6 +16,7 @@ def create_app():
 
     db.init_app(app)
     ##? initializing the db
+    ##? It binds the Flask application to the SQLAlchemy instance, allowing you to use SQLAlchemy within your Flask application. This line essentially tells Flask to use the db instance for its database-related operations
 
     from .views import views
     from .auth import auth

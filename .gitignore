@@ -1,3 +1,4 @@
 .vercel
 instance/
 vercel.json
+ec2DockerServer.pem
